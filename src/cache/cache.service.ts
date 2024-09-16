@@ -3,7 +3,7 @@ import { REDIS_REFRESH_TOKEN_KEY } from './constants/redis-keys.constant';
 import { RedisClient } from 'src/config/redis.config';
 
 @Injectable()
-export class CacheService {
+export class RedisService {
   constructor(@Inject('REDIS_CLIENT') private redisClient: RedisClient) {}
 
   async saveSession(userId: string, refreshToken: string) {

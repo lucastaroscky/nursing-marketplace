@@ -1,12 +1,19 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { SignInDto } from './dto/sign-in.dto';
 import { ConfigService } from '@nestjs/config';
 import { SignUpDto } from './dto/sign-up.dto';
 import { PrismaService } from 'src/config/prisma.config';
-import { CacheService } from 'src/cache/cache.service';
+import { RedisService } from 'src/cache/cache.service';
 import { hash, verify } from 'argon2';
-import { INCORRECT_EMAIL_PASSWORD } from 'src/common/constants/error-messages.constant';
+import {
+  INCORRECT_EMAIL_PASSWORD,
+  USER_NOT_FOUND,
+} from 'src/common/constants/error-messages.constant';
 
 @Injectable()
 export class AuthService {
@@ -14,7 +21,7 @@ export class AuthService {
     private prismaService: PrismaService,
     private jwtService: JwtService,
     private configService: ConfigService,
-    private cacheManager: CacheService,
+    private redisService: RedisService,
   ) {}
 
   private async generateToken(userId: string) {
@@ -54,6 +61,7 @@ export class AuthService {
 
     const accessToken = await this.generateToken(user.id);
     const refreshToken = await this.generateRefreshToken(user.id);
+    await this.redisService.saveSession(user.id, refreshToken);
 
     return {
       id: user.id,
@@ -82,21 +90,23 @@ export class AuthService {
 
     const accessToken = await this.generateToken(user.id);
     const refreshToken = await this.generateRefreshToken(user.id);
-
-    await this.cacheManager.saveSession(user.id, refreshToken);
+    await this.redisService.saveSession(user.id, refreshToken);
 
     return { accessToken, refreshToken };
   }
 
   async signOut(userId: string) {
-    return this.cacheManager.removeSession(userId);
+    return this.redisService.removeSession(userId);
   }
 
   async revokeToken(userId: string) {
-    return this.cacheManager.removeSession(userId);
-  }
+    const user = this.prismaService.user.findUnique({
+      where: { id: userId },
+    });
 
-  async refreshSession(userId: string) {
-    return this.generateToken(userId);
+    if (!user) {
+      throw new NotFoundException(USER_NOT_FOUND);
+    }
+    return this.redisService.removeSession(userId);
   }
 }

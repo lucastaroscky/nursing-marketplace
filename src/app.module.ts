@@ -8,6 +8,7 @@ import { AppCacheModule } from './cache/cache.module';
 import { AuthMiddleware } from './common/middlewares/auth.middleware';
 import { JwtModule } from '@nestjs/jwt';
 import { PrismaService } from './config/prisma.config';
+import { UserController } from './user/user.controller';
 
 @Module({
   imports: [
@@ -27,11 +28,16 @@ import { PrismaService } from './config/prisma.config';
 })
 export class AppModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer
-      .apply(AuthMiddleware)
-      .forRoutes(
-        { path: 'user/:id/ban', method: RequestMethod.ALL },
-        { path: 'auth/refresh-token', method: RequestMethod.ALL },
-      );
+    consumer.apply(AuthMiddleware).forRoutes(
+      UserController,
+      {
+        path: 'auth/refresh-token',
+        method: RequestMethod.ALL,
+      },
+      {
+        path: 'auth/revoke-access/:id',
+        method: RequestMethod.ALL,
+      },
+    );
   }
 }

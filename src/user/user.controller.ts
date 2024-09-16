@@ -1,14 +1,26 @@
-import { Controller, Post } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Param,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
 import { UserService } from './user.service';
-import { User } from 'src/common/decorators/user.decorator';
-import { AuthUser } from 'src/common/interfaces/auth-user.interface';
+import { SessionCheckGuard } from 'src/common/guards/session-check.guard';
 
 @Controller('user')
+@UseGuards(SessionCheckGuard)
 export class UserController {
   constructor(private userService: UserService) {}
 
-  @Post('ban')
-  async banUser(@User() { userId }: AuthUser) {
-    await this.userService.banUser(userId);
+  @Post('ban/:id')
+  @HttpCode(HttpStatus.OK)
+  async banUser(@Param() param: { id: string }) {
+    await this.userService.banUser(param.id);
   }
+
+  @Get('health-check')
+  async healthCheck() {}
 }

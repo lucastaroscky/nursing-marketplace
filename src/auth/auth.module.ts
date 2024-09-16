@@ -6,7 +6,7 @@ import { AppCacheModule } from 'src/cache/cache.module';
 import { PrismaService } from 'src/config/prisma.config';
 
 @Module({
-  imports: [JwtModule.register({}), AppCacheModule],
+  imports: [JwtModule, AppCacheModule],
   controllers: [AuthController],
   providers: [AuthService, PrismaService],
 })
