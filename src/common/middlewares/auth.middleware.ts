@@ -6,7 +6,7 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { Request, Response, NextFunction } from 'express';
-import { TOKEN_NOT_FOUND } from '../constants/error-messages.constant';
+import { TOKEN_NOT_FOUND } from '../constants/messages.constant';
 import { AuthUser } from '../interfaces/auth-user.interface';
 
 @Injectable()

@@ -5,7 +5,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { RedisService } from 'src/cache/cache.service';
-import { INVALID_OR_EXPIRED_TOKEN } from '../constants/error-messages.constant';
+import { INVALID_OR_EXPIRED_TOKEN } from '../constants/messages.constant';
 
 @Injectable()
 export class SessionCheckGuard implements CanActivate {

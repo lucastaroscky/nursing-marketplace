@@ -11,7 +11,7 @@ import { Request, Response } from 'express';
 import {
   EMAIL_ALREADY_IN_USE,
   INVALID_OR_EXPIRED_TOKEN,
-} from '../constants/error-messages.constant';
+} from '../constants/messages.constant';
 
 @Catch()
 export class AllExceptionsFilter implements ExceptionFilter {

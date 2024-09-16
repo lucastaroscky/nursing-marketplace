@@ -13,7 +13,7 @@ import { hash, verify } from 'argon2';
 import {
   INCORRECT_EMAIL_PASSWORD,
   USER_NOT_FOUND,
-} from 'src/common/constants/error-messages.constant';
+} from 'src/common/constants/messages.constant';
 
 @Injectable()
 export class AuthService {

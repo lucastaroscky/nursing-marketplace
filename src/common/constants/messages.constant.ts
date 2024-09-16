@@ -5,3 +5,6 @@ export const BANNED_USER = 'banned user';
 export const EMAIL_ALREADY_IN_USE = 'email already in use';
 export const INTERNAL_SERVER_ERROR = 'internal server error';
 export const USER_NOT_FOUND = 'user not found';
+
+export const USER_SINGOUT = 'user signout successfuly';
+export const REVOKED_ACCESS = 'revoked user access successfuly';

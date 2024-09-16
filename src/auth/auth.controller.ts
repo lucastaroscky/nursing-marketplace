@@ -13,6 +13,10 @@ import { SignInDto } from './dto/sign-in.dto';
 import { User } from 'src/common/decorators/user.decorator';
 import { BanCheckGuard } from 'src/common/guards/ban-check.guard';
 import { SessionCheckGuard } from 'src/common/guards/session-check.guard';
+import {
+  REVOKED_ACCESS,
+  USER_SINGOUT,
+} from 'src/common/constants/messages.constant';
 
 @Controller('auth')
 export class AuthController {
@@ -33,12 +37,14 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   async signOut(@User() userId: string) {
     await this.authService.signOut(userId);
+    return { message: USER_SINGOUT };
   }
 
   @Post('revoke-access/:id')
   @UseGuards(SessionCheckGuard)
   @HttpCode(HttpStatus.OK)
   async revokeAccess(@Param() { id }: { id: string }) {
-    return this.authService.revokeToken(id);
+    await this.authService.revokeToken(id);
+    return { message: REVOKED_ACCESS };
   }
 }
