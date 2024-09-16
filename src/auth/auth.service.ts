@@ -1,10 +1,12 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { compareHash, encryptPassword } from 'src/utils/bcrypt';
 import { SignInDto } from './dto/sign-in.dto';
 import { ConfigService } from '@nestjs/config';
 import { SignUpDto } from './dto/sign-up.dto';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { PrismaService } from 'src/config/prisma.config';
+import { CacheService } from 'src/cache/cache.service';
+import { hash, verify } from 'argon2';
+import { INCORRECT_EMAIL_PASSWORD } from 'src/common/constants/error-messages.constant';
 
 @Injectable()
 export class AuthService {
@@ -12,68 +14,22 @@ export class AuthService {
     private prismaService: PrismaService,
     private jwtService: JwtService,
     private configService: ConfigService,
+    private cacheManager: CacheService,
   ) {}
 
-  async signUp(signUp: SignUpDto) {
-    const hashedPassword = await encryptPassword(signUp.password);
-
-    const user = await this.prismaService.user.create({
-      data: {
-        name: signUp.name,
-        email: signUp.email,
-        password: hashedPassword,
-      },
-    });
-
-    const accessToken = await this.generateToken(user.id, user.email);
-
-    return {
-      id: user.id,
-      email: user.email,
-      accessToken,
-    };
-  }
-
-  async signIn(loginDto: SignInDto) {
-    const user = await this.prismaService.user.findUnique({
-      where: {
-        email: loginDto.email,
-      },
-    });
-
-    if (!user) {
-      throw new BadRequestException('email or password incorrect');
-    }
-
-    const isUserPasswordValid = await compareHash(
-      user.password,
-      loginDto.password,
-    );
-
-    if (!user || !isUserPasswordValid) {
-      throw new BadRequestException('email or password incorrect');
-    }
-
-    if (user && isUserPasswordValid) {
-      const accessToken = await this.generateToken(user.id, user.email);
-
-      return { accessToken };
-    }
-  }
-
-  private async generateToken(userId: string, email: string) {
-    const payload = { sub: userId, email };
+  private async generateToken(userId: string) {
+    const payload = { sub: userId };
     const secret = this.configService.get('JWT_SECRET');
 
     const token = await this.jwtService.signAsync(payload, {
-      expiresIn: '20m',
+      expiresIn: '15m',
       secret,
     });
 
     return token;
   }
 
-  async generateRefreshToken(userId: string) {
+  private async generateRefreshToken(userId: string) {
     const payload = { sub: userId };
     const secret = this.configService.get('JWT_SECRET');
 
@@ -85,11 +41,62 @@ export class AuthService {
     return token;
   }
 
-  // async validateRefreshToken(refreshToken, userId) {
-  //   const user = await this.userService.findUserById(userId);
+  async signUp(signUp: SignUpDto) {
+    const hashedPassword = await hash(signUp.password);
 
-  //   const isTokenValid = await compareHash(refreshToken, user.refreshToken);
+    const user = await this.prismaService.user.create({
+      data: {
+        name: signUp.name,
+        email: signUp.email,
+        password: hashedPassword,
+      },
+    });
 
-  //   return isTokenValid;
-  // }
+    const accessToken = await this.generateToken(user.id);
+    const refreshToken = await this.generateRefreshToken(user.id);
+
+    return {
+      id: user.id,
+      email: user.email,
+      accessToken,
+      refreshToken,
+    };
+  }
+
+  async signIn(loginDto: SignInDto) {
+    const user = await this.prismaService.user.findUnique({
+      where: {
+        email: loginDto.email,
+      },
+    });
+
+    if (!user) {
+      throw new BadRequestException(INCORRECT_EMAIL_PASSWORD);
+    }
+
+    const isUserPasswordValid = await verify(user.password, loginDto.password);
+
+    if (!isUserPasswordValid) {
+      throw new BadRequestException(INCORRECT_EMAIL_PASSWORD);
+    }
+
+    const accessToken = await this.generateToken(user.id);
+    const refreshToken = await this.generateRefreshToken(user.id);
+
+    await this.cacheManager.saveSession(user.id, refreshToken);
+
+    return { accessToken, refreshToken };
+  }
+
+  async signOut(userId: string) {
+    return this.cacheManager.removeSession(userId);
+  }
+
+  async revokeToken(userId: string) {
+    return this.cacheManager.removeSession(userId);
+  }
+
+  async refreshSession(userId: string) {
+    return this.generateToken(userId);
+  }
 }
