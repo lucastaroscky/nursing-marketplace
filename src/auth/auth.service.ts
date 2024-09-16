@@ -107,6 +107,13 @@ export class AuthService {
     if (!user) {
       throw new NotFoundException(USER_NOT_FOUND);
     }
+
     return this.redisService.removeSession(userId);
+  }
+
+  async refreshSession(userId: string) {
+    const accessToken = await this.generateToken(userId);
+
+    return { accessToken };
   }
 }

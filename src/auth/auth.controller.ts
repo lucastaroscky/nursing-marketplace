@@ -47,4 +47,10 @@ export class AuthController {
     await this.authService.revokeToken(id);
     return { message: REVOKED_ACCESS };
   }
+
+  @Post('refresh-token')
+  @UseGuards(SessionCheckGuard)
+  async refreshToken(@User() userId: string) {
+    return this.authService.refreshSession(userId);
+  }
 }

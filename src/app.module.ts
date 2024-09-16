@@ -38,6 +38,10 @@ export class AppModule {
         path: 'auth/revoke-access/:id',
         method: RequestMethod.ALL,
       },
+      {
+        path: 'auth/sign-out',
+        method: RequestMethod.ALL,
+      },
     );
   }
 }
