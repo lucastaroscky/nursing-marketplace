@@ -1,5 +1,5 @@
 -- CreateTable
-CREATE TABLE "User" (
+CREATE TABLE "user" (
     "id" TEXT NOT NULL,
     "email" TEXT NOT NULL,
     "password" TEXT NOT NULL,
@@ -8,9 +8,10 @@ CREATE TABLE "User" (
     "isActive" BOOLEAN NOT NULL DEFAULT true,
     "createdAt" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMPTZ NOT NULL,
+    "isBanned" BOOLEAN NOT NULL DEFAULT false,
 
-    CONSTRAINT "User_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "user_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateIndex
-CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
+CREATE UNIQUE INDEX "user_email_key" ON "user"("email");
