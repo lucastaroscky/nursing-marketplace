@@ -7,18 +7,14 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User {
-  id                      String   @default(uuid()) @id
-  email                   String   @unique
-  password                String
-  name                    String
-  role                    String   @default("user")
-  isActive                Boolean  @default(true)
-  createdAt               DateTime @default(now())
-  updatedAt               DateTime @updatedAt
-  lastLogin               DateTime?
-  failedLoginAttempts     Int      @default(0)
-  emailVerified           Boolean  @default(false)
-  twoFactorEnabled        Boolean  @default(false)
+model user {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  name      String
+  role      String   @default("user")
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now()) @db.Timestamptz
+  updatedAt DateTime @updatedAt @db.Timestamptz
+  isBanned  Boolean  @default(false)
 }
-
