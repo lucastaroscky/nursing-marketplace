@@ -24,4 +24,19 @@ export class UserService {
     await this.setBanUser(userId);
     await this.redisService.removeSession(userId);
   }
+
+  async getUsers() {
+    return this.prismaService.user.findMany({
+      where: {
+        isBanned: false,
+      },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        isBanned: true,
+        createdAt: true,
+      },
+    });
+  }
 }

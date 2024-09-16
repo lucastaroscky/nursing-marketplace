@@ -23,4 +23,9 @@ export class UserController {
 
   @Get('health-check')
   async healthCheck() {}
+
+  @Get('list')
+  async getUsers() {
+    return this.userService.getUsers();
+  }
 }
