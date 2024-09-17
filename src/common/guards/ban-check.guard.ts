@@ -22,7 +22,7 @@ export class BanCheckGuard implements CanActivate {
       },
     });
 
-    if (user.isBanned) {
+    if (!user || user.isBanned) {
       return false;
     }
 
